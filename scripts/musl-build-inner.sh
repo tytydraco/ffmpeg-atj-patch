@@ -5,7 +5,7 @@ set -eu
 SRC="${SRC:-/src}"
 PREFIX="${PREFIX:-/dist}"
 JOBS="${JOBS:-$(nproc)}"
-WORKDIR=/tmp/build
+WORKDIR="/tmp/build"
 
 export CFLAGS="-O2 -fPIC"
 export CXXFLAGS="-O2 -fPIC"
@@ -22,8 +22,8 @@ mkdir -p "$PREFIX" "$WORKDIR"
 cd "$WORKDIR"
 
 fetch() {
-    name=$1
-    url=$2
+    name="$1"
+    url="$2"
     if [ ! -f "$name" ]; then
         curl -fsSL "$url" -o "$name"
     fi
@@ -62,11 +62,14 @@ rm -rf libvpx-1.15.0 && tar xf libvpx.tar.gz && cd libvpx-1.15.0
 make -j"$JOBS" && make install
 cd "$WORKDIR"
 
+# shellcheck disable=SC1091
 . "$SRC/scripts/build-x264.sh"
 build_x264 "$PREFIX" "$SRC/atj-x264.patch" "$WORKDIR/x264-build"
 
+# shellcheck disable=SC1091
 . "$SRC/scripts/fetch-ffmpeg.sh"
 fetch_ffmpeg "$WORKDIR/ffmpeg"
+
 cd "$WORKDIR/ffmpeg"
 make distclean 2>/dev/null || true
 ./configure \

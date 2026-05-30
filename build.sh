@@ -7,7 +7,10 @@ PREFIX="$SCRIPT_DIR/local"
 BUILD="$SCRIPT_DIR/.build"
 JOBS="$(nproc)"
 
+# shellcheck disable=SC1091
 . "$SCRIPT_DIR/scripts/build-x264.sh"
+
+# shellcheck disable=SC1091
 . "$SCRIPT_DIR/scripts/fetch-ffmpeg.sh"
 
 build_x264 "$PREFIX" "$SCRIPT_DIR/atj-x264.patch" "$BUILD/x264"

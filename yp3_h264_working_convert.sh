@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Convert video to uid0001 AVI (AGPTEK / ATJ-class H.264 + PCM).
+# Convert video to uid0001 AVI (Shenju / YP3-class H.264 + PCM).
 set -euo pipefail
 
 ROOT="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"

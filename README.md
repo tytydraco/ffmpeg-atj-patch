@@ -1,10 +1,10 @@
-# ffmpeg-atj-patch
+# ffmpeg-yp3-patch
 
-Patched FFMPEG for ATJ H.264 MP3 players.
+Patched FFMPEG for Shenju / YP3 H.264 MP3 players.
 
 # Why
 
-H.264 ATJ-chip decoders require legacy FFMPEG parameters that cannot be set via command line options. Instead, a minimal patch is necessary.
+H.264 YP3-chip decoders require legacy FFMPEG parameters that cannot be set via command line options. Instead, a minimal patch is necessary.
 
 Without this patch, modern FFMPEG-encoded videos will not play, or will be severely corrupted. This is primarily due to mismatching SPS/PPS and VUI data.
 

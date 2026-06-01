@@ -64,7 +64,7 @@ cd "$WORKDIR"
 
 # shellcheck disable=SC1091
 . "$SRC/scripts/build-x264.sh"
-build_x264 "$PREFIX" "$SRC/atj-x264.patch" "$WORKDIR/x264-build"
+build_x264 "$PREFIX" "$SRC/yp3-x264.patch" "$WORKDIR/x264-build"
 
 # shellcheck disable=SC1091
 . "$SRC/scripts/fetch-ffmpeg.sh"

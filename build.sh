@@ -13,7 +13,7 @@ JOBS="$(nproc)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/scripts/fetch-ffmpeg.sh"
 
-build_x264 "$PREFIX" "$SCRIPT_DIR/atj-x264.patch" "$BUILD/x264"
+build_x264 "$PREFIX" "$SCRIPT_DIR/yp3-x264.patch" "$BUILD/x264"
 fetch_ffmpeg "$BUILD/ffmpeg"
 
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:${PKG_CONFIG_PATH:-}"

@@ -1,3 +1,34 @@
+diff --git a/encoder/analyse.c b/encoder/analyse.c
+index adb63e1..b15656c 100644
+--- a/encoder/analyse.c
++++ b/encoder/analyse.c
+@@ -1325,7 +1325,7 @@ static void mb_analyse_inter_p16x16( x264_t *h, x264_mb_analysis_t *a )
+             h->mb.i_partition = D_16x16;
+             x264_macroblock_cache_mv_ptr( h, 0, 0, 4, 4, 0, a->l0.me16x16.mv );
+             a->l0.i_rd16x16 = rd_cost_mb( h, a->i_lambda2 );
+-            if( !(h->mb.i_cbp_luma|h->mb.i_cbp_chroma) )
++            if( h->param.i_bframe && !(h->mb.i_cbp_luma|h->mb.i_cbp_chroma) )
+                 h->mb.i_type = P_SKIP;
+         }
+     }
+@@ -2975,7 +2975,7 @@ intra_analysis:
+                 {
+                     h->mb.i_partition = D_16x16;
+                     /* Use the P-SKIP MV if we can... */
+-                    if( !M32(h->mb.cache.pskip_mv) )
++                    if( h->param.i_bframe && !M32(h->mb.cache.pskip_mv) )
+                     {
+                         b_skip = 1;
+                         h->mb.i_type = P_SKIP;
+@@ -3016,7 +3016,7 @@ intra_analysis:
+ 
+         h->mc.prefetch_ref( h->mb.pic.p_fref[0][0][h->mb.i_mb_x&3], h->mb.pic.i_stride[0], 1 );
+ 
+-        if( b_skip )
++        if( b_skip && h->param.i_bframe )
+         {
+             h->mb.i_type = P_SKIP;
+             h->mb.i_partition = D_16x16;
 diff --git a/encoder/encoder.c b/encoder/encoder.c
 index 20e620a..f728c62 100644
 --- a/encoder/encoder.c
@@ -12,11 +43,35 @@ index 20e620a..f728c62 100644
          h->sh.i_type = SLICE_TYPE_P;
          reference_hierarchy_reset( h );
          h->frames.i_poc_last_open_gop = -1;
+diff --git a/encoder/macroblock.c b/encoder/macroblock.c
+index b1ff680..0f81843 100644
+--- a/encoder/macroblock.c
++++ b/encoder/macroblock.c
+@@ -619,7 +619,8 @@ static ALWAYS_INLINE void macroblock_encode_internal( x264_t *h, int plane_count
+ {
+     int i_qp = h->mb.i_qp;
+     int b_decimate = h->mb.b_dct_decimate;
+-    int b_force_no_skip = 0;
++    /* Legacy decoder: P_SKIP breaks disposable-P streams (vendor x264 never skips). */
++    int b_force_no_skip = !h->param.i_bframe;
+     int nz;
+     h->mb.i_cbp_luma = 0;
+     for( int p = 0; p < plane_count; p++ )
+@@ -1128,6 +1129,9 @@ static ALWAYS_INLINE int macroblock_probe_skip_internal( x264_t *h, int b_bidir,
+ 
+ int x264_macroblock_probe_skip( x264_t *h, int b_bidir )
+ {
++    if( !b_bidir && !h->param.i_bframe )
++        return 0;
++
+     if( CHROMA_FORMAT == CHROMA_420 )
+         return macroblock_probe_skip_internal( h, b_bidir, 1, CHROMA_420 );
+     else if( CHROMA_FORMAT == CHROMA_422 )
 diff --git a/encoder/set.c b/encoder/set.c
-index ec47193..222c8a9 100644
+index ec47193..42062ee 100644
 --- a/encoder/set.c
 +++ b/encoder/set.c
-@@ -170,16 +170,21 @@ void x264_sps_init( x264_sps_t *sps, int i_id, x264_param_t *param )
+@@ -170,16 +170,24 @@ void x264_sps_init( x264_sps_t *sps, int i_id, x264_param_t *param )
      while( (1 << sps->i_log2_max_frame_num) <= max_frame_num )
          sps->i_log2_max_frame_num++;
  
@@ -32,6 +87,9 @@ index ec47193..222c8a9 100644
          sps->i_log2_max_poc_lsb = 4;
          while( (1 << sps->i_log2_max_poc_lsb) <= max_delta_poc * 2 )
              sps->i_log2_max_poc_lsb++;
++        /* Legacy decoder compatibility: Shenju/vendor SPS always uses log2_max_pic_order_cnt_lsb=9. */
++        if( sps->i_log2_max_poc_lsb < 9 )
++            sps->i_log2_max_poc_lsb = 9;
      }
  
 -    sps->b_vui = 1;
@@ -40,7 +98,7 @@ index ec47193..222c8a9 100644
  
      sps->b_gaps_in_frame_num_value_allowed = 0;
      sps->b_mb_adaptive_frame_field = param->b_interlaced;
-@@ -494,7 +499,7 @@ void x264_pps_init( x264_pps_t *pps, int i_id, x264_param_t *param, x264_sps_t *
+@@ -494,7 +502,7 @@ void x264_pps_init( x264_pps_t *pps, int i_id, x264_param_t *param, x264_sps_t *
      pps->i_pic_init_qp = param->rc.i_rc_method == X264_RC_ABR || param->b_stitchable ? 26 + QP_BD_OFFSET : SPEC_QP( param->rc.i_qp_constant );
      pps->i_pic_init_qs = 26 + QP_BD_OFFSET;
  

@@ -23,14 +23,17 @@ Without this patch, modern FFMPEG-encoded videos will not play, or will be sever
 
 # Encoding Requirements
 
-- `-bsf:v "filter_units=remove_types=6"`: Device expects no SEI (vendor patched out completely).
+- `-x264-params "mvrange=8:merange=8"`: Restrict motion-vector range
+- `-bsf:v "filter_units=remove_types=6"`: Device expects no SEI.
 - `-profile:v baseline`: Disable unsupported features.
-- `-filter:v "transpose=cclock"`: Proper orientation.
-- `-pix_fpt:v yuvj420p`: Device prefers full-range pixel format.
-- `-b:v 1M`: Target 1 Mbps @ 30 fps (readjust to scale with fps); can do up to 10-20 Mbps.
-- `-sc_threshold:v 0`: Disable scene-cut detection to reduce encoding overhead with GOP length of 1.
 - `-c:a pcm_s16le`: Device expects uncompressed signed PCM 16-bit little-endian.
 - `-ar:a >= 8 kHz`: Device requires at least 8 Khz audio rate.
+- `-qmin:v 20`: Restrict maximum I-frame complexity.
+
+# Encoding Recommendations
+
+- `-pix_fpt:v yuvj420p`: Device prefers full-range pixel format.
+- `-filter:v "transpose=cclock"`: Proper orientation.
 
 # Static Binary
 

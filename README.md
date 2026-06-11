@@ -31,6 +31,7 @@ Without this patch, modern FFMPEG-encoded videos will not play, or will be sever
 - `-c:a pcm_s16le`: Device expects uncompressed signed PCM 16-bit little-endian.
 - `-ar:a >= 8 kHz`: Device requires at least 8 Khz audio rate.
 - `-qmin:v 20`: Restrict maximum I-frame complexity.
+- `-sc_threshold:v 0`: Disable scene-cut IDRs that destabilize P-chains.
 
 # Encoding Recommendations
 
